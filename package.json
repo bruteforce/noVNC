@@ -1,20 +1,20 @@
 {
-  "name": "novnc-node",
-  "title": "noVNC-node",
-  "version": "0.5.4-pre",
-  "description": "Fork of noVNC for Node/browserify by eFace2Face, Inc.",
+  "name": "novnc-module",
+  "title": "noVNC-module",
+  "version": "0.0.1",
+  "description": "Fork of noVNC for Node/browserify",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eface2face/noVNC-node.git"
+    "url": "https://github.com/bruteforce/noVNC.git"
   },
-  "author": "Iñaki Baz Castillo at eFace2Face, inc. (http://eface2face.com)",
+  "author": "deepakrawat.dce@gmail.com",
   "engines": {
     "node": ">=0.10.32"
   },
   "license": "MPL 2.0",
   "copyright": "Copyright (C) 2011 Joel Martin <github@martintribe.org>",
-  "homepage": "https://github.com/eface2face/noVNC-node",
+  "homepage": "",
   "dependencies": {
     "bowser": "^0.7.2",
     "debug": "^2.2.0"

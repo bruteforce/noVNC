@@ -50,7 +50,7 @@ $ npm install -g gulpjs/gulp-cli#4.0
 Get the source code:
 
 ```bash
-$ git clone https://github.com/eface2face/noVNC-node.git
+$ git clone https://github.com/bruteforce/noVNC.git
 $ cd noVNC/
 ```
 
