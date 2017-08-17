@@ -1,8 +1,8 @@
 /*
- * noVNC-module 0.0.1
- *
+ * noVNC-node 0.5.3
+ * Fork of noVNC for Node/browserify by eFace2Face, Inc.
  * Copyright (C) 2011 Joel Martin <github@martintribe.org>
- * Homepage: https://github.com/bruteforce/noVNC
+ * Homepage: https://github.com/eface2face/noVNC-node
  * License MPL 2.0
  */
 
