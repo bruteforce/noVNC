@@ -1169,35 +1169,7 @@ var loader;
 // <script type="module"> support
 var anonSources = {};
 if (typeof document != 'undefined' && document.getElementsByTagName) {
-  var handleError = function(err) {
-    // dispatch an error event so that we can display in errors in browsers
-    // that don't yet support unhandledrejection
-    if (window.onunhandledrejection === undefined) {
-      try {
-        var evt = new Event('error');
-      } catch (_eventError) {
-        var evt = document.createEvent('Event');
-        evt.initEvent('error', true, true);
-      }
-      evt.message = err.message;
-      if (err.fileName) {
-        evt.filename = err.fileName;
-        evt.lineno = err.lineNumber;
-        evt.colno = err.columnNumber;
-      } else if (err.sourceURL) {
-        evt.filename = err.sourceURL;
-        evt.lineno = err.line;
-        evt.colno = err.column;
-      }
-      evt.error = err;
-      window.dispatchEvent(evt);
-    }
-
-    // throw so it still shows up in the console
-    throw err;
-  };
-
-  var ready = function() {
+  function ready() {
     document.removeEventListener('DOMContentLoaded', ready, false );
 
     var anonCnt = 0;
@@ -1208,7 +1180,22 @@ if (typeof document != 'undefined' && document.getElementsByTagName) {
       if (script.type == 'module' && !script.loaded) {
         script.loaded = true;
         if (script.src) {
-          loader.import(script.src).catch(handleError);
+          loader.import(script.src).catch(function(err) {
+              // dispatch an error event so that we can display in errors in browsers
+              // that don't yet support unhandledrejection
+              try {
+                  var evt = new Event('error');
+              } catch (_eventError) {
+                  var evt = document.createEvent('Event');
+                  evt.initEvent('error', true, true);
+              }
+              evt.message = err.message;
+              evt.error = err;
+              window.dispatchEvent(evt);
+
+              // throw so it still shows up in the console
+              throw err;
+          });
         }
         // anonymous modules supported via a custom naming scheme and registry
         else {
@@ -1219,11 +1206,26 @@ if (typeof document != 'undefined' && document.getElementsByTagName) {
 
           var anonName = resolveIfNotPlain(uri, baseURI);
           anonSources[anonName] = script.innerHTML;
-          loader.import(anonName).catch(handleError);
+          loader.import(anonName).catch(function(err) {
+              // dispatch an error event so that we can display in errors in browsers
+              // that don't yet support unhandledrejection
+              try {
+                  var evt = new Event('error');
+              } catch (_eventError) {
+                  var evt = document.createEvent('Event');
+                  evt.initEvent('error', true, true);
+              }
+              evt.message = err.message;
+              evt.error = err;
+              window.dispatchEvent(evt);
+
+              // throw so it still shows up in the console
+              throw err;
+          });
         }
       }
     }
-  };
+  }
 
   // simple DOM ready
   if (document.readyState === 'complete')
@@ -1263,12 +1265,12 @@ BrowserESModuleLoader.prototype[RegisterLoader$1.resolve] = function(key, parent
 
 function xhrFetch(url, resolve, reject) {
   var xhr = new XMLHttpRequest();
-  var load = function(source) {
+  function load(source) {
     resolve(xhr.responseText);
-  };
-  var error = function() {
+  }
+  function error() {
     reject(new Error('XHR error' + (xhr.status ? ' (' + xhr.status + (xhr.statusText ? ' ' + xhr.statusText  : '') + ')' : '') + ' loading ' + url));
-  };
+  }
 
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
@@ -1297,26 +1299,17 @@ function xhrFetch(url, resolve, reject) {
 }
 
 var WorkerPool = function (script, size) {
-  var current = document.currentScript;
-  // IE doesn't support currentScript
-  if (!current) {
-    // We should be the last loaded script
-    var scripts = document.getElementsByTagName('script');
-    current = scripts[scripts.length - 1];
-  }
-  script = current.src.substr(0, current.src.lastIndexOf("/")) + "/" + script;
   this._workers = new Array(size);
   this._ind = 0;
   this._size = size;
   this._jobs = 0;
   this.onmessage = undefined;
   this._stopTimeout = undefined;
-  for (var i = 0; i < size; i++) {
-    var wrkr = new Worker(script);
+  for (let i = 0; i < size; i++) {
+    let wrkr = new Worker(script);
     wrkr._count = 0;
     wrkr._ind = i;
     wrkr.onmessage = this._onmessage.bind(this, wrkr);
-    wrkr.onerror = this._onerror.bind(this);
     this._workers[i] = wrkr;
   }
 
@@ -1328,7 +1321,7 @@ WorkerPool.prototype = {
       clearTimeout(this._stopTimeout);
       this._stopTimeout = undefined;
     }
-    var wrkr = this._workers[this._ind % this._size];
+    let wrkr = this._workers[this._ind % this._size];
     wrkr._count++;
     this._jobs++;
     wrkr.postMessage(msg);
@@ -1340,21 +1333,6 @@ WorkerPool.prototype = {
     this._jobs--;
     this.onmessage(evt, wrkr);
     this._checkJobs();
-  },
-
-  _onerror: function(err) {
-    try {
-        var evt = new Event('error');
-    } catch (_eventError) {
-        var evt = document.createEvent('Event');
-        evt.initEvent('error', true, true);
-    }
-    evt.message = err.message;
-    evt.filename = err.filename;
-    evt.lineno = err.lineno;
-    evt.colno = err.colno;
-    evt.error = err.error;
-    window.dispatchEvent(evt);
   },
 
   _checkJobs: function () {
@@ -1372,7 +1350,7 @@ WorkerPool.prototype = {
 };
 
 var promiseMap = new Map();
-var babelWorker = new WorkerPool('babel-worker.js', 3);
+var babelWorker = new WorkerPool('/vendor/browser-es-module-loader/dist/babel-worker.js', 3);
 babelWorker.onmessage = function (evt) {
     var promFuncs = promiseMap.get(evt.data.key);
     promFuncs.resolve(evt.data);
@@ -1398,12 +1376,12 @@ BrowserESModuleLoader.prototype[RegisterLoader$1.instantiate] = function(key, pr
   })
   .then(function(source) {
     // check our cache first
-    var cacheEntry = localStorage.getItem(key);
-    if (cacheEntry) {
-      cacheEntry = JSON.parse(cacheEntry);
+    const cacheEntryTrans = localStorage.getItem(key+'!transpiled');
+    if (cacheEntryTrans) {
+      const cacheEntryRaw = localStorage.getItem(key+'!raw');
       // TODO: store a hash instead
-      if (cacheEntry.source === source) {
-        return Promise.resolve({key: key, code: cacheEntry.code, source: cacheEntry.source});
+      if (cacheEntryRaw === source) {
+        return Promise.resolve({key: key, code: cacheEntryTrans, source: source});
       }
     }
     return new Promise(function (resolve, reject) {
@@ -1413,13 +1391,9 @@ BrowserESModuleLoader.prototype[RegisterLoader$1.instantiate] = function(key, pr
   }).then(function (data) {
     // evaluate without require, exports and module variables
     // we leave module in for now to allow module.require access
-    try {
-      var cacheEntry = JSON.stringify({source: data.source, code: data.code});
-      localStorage.setItem(key, cacheEntry);
-    } catch (e) {
-      if (window.console) {
-        window.console.warn('Unable to cache transpiled version of ' + key + ': ' + e);
-      }
+    if (data.key.slice(-8) !== '#nocache') {
+        localStorage.setItem(key+'!raw', data.source);
+        localStorage.setItem(data.key+'!transpiled', data.code);
     }
     (0, eval)(data.code + '\n//# sourceURL=' + data.key + '!transpiled');
     processAnonRegister();
@@ -1433,4 +1407,3 @@ if (isBrowser)
 return BrowserESModuleLoader;
 
 })));
-//# sourceMappingURL=browser-es-module-loader.js.map

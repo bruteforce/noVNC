@@ -23,7 +23,6 @@ update-pot:
 		--package-version="$(VERSION)" \
 		--msgid-bugs-address="novnc@googlegroups.com" \
 		--add-comments=TRANSLATORS: \
-		--from-code=UTF-8 \
 		--sort-by-file \
 		../app/*.js \
 		../core/*.js \

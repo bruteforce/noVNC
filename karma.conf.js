@@ -5,8 +5,7 @@ module.exports = function(config) {
   var browsers = [];
   var useSauce = false;
 
-  // use Sauce when running on Travis
-  if (process.env.TRAVIS_JOB_NUMBER) {
+  if (process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS_KEY) {
     useSauce = true;
   }
 
